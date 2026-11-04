@@ -103,8 +103,13 @@ Higgsfield's best idea is **presets**. "Pick a look, add your image, get a video
 
 **Screens:**
 1. **Create** (`/`): the composer (mode, preset rail, prompt, optional start image, intent, aspect, duration, price and wait line, Generate) above your history grid with live job states.
-2. **Result viewer** (modal): media, prompt, settings, cost and time. Actions: Animate, Remix, Download, Publish to Explore.
-3. **Explore** (`/explore`): published results, each with Remix.
+2. **Result viewer** (modal): media, prompt, settings, cost and time. Actions: Animate, Remix, Download.
+3. **Made with Take One**: a curated gallery of real takes, each with Remix. It sits on the Create screen, under your takes.
+
+*Revised while building (2026-11-04):* the open Explore page and its Publish action were dropped.
+- **Why:** any anonymous visitor could post anything to a public page, and there is no moderation. Showing that to the first person who opens the link is a worse failure than a missing feature.
+- **What replaced it:** a gallery that `scripts/feature.mjs` copies from chosen takes. It keeps the useful part of Explore, since a first-time visitor sees what the product makes and can start from an example.
+- **Why on the Create screen:** a second page would sit one click away from the composer.
 
 ## 6. Build order (deploy after every milestone)
 
@@ -112,7 +117,7 @@ Higgsfield's best idea is **presets**. "Pick a look, add your image, get a video
 2. **M1:** image generation end to end. Covers the visitor cookie, credits, Redis, Blob and the history grid.
 3. **M2:** async video, plus Animate (image → video).
 4. **M3:** presets with previews, and the price and wait line.
-5. **M4:** result viewer actions, Explore and Remix.
+5. **M4:** result viewer actions, the curated gallery and Remix.
 6. **M5:** empty and error states (insufficient credits, budget exhausted, provider failure), mobile, and a README with the walkthrough script.
 
 ## 7. Left to the builder

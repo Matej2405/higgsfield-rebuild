@@ -8,12 +8,13 @@ import { formatSeconds, plural, usd } from "./composer";
 
 type Props = {
   take: Take | null;
+  title: string;
   onClose: () => void;
   onAnimate: (take: Take) => void;
   onRemix: (take: Take) => void;
 };
 
-export function Viewer({ take, onClose, onAnimate, onRemix }: Props) {
+export function Viewer({ take, title, onClose, onAnimate, onRemix }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export function Viewer({ take, onClose, onAnimate, onRemix }: Props) {
 
           <div className="flex min-h-0 flex-col overflow-y-auto">
             <div className="flex items-center justify-between border-b border-line px-4 py-3">
-              <h2 className="text-lg font-extrabold [font-stretch:125%]">Take {take.take}</h2>
+              <h2 className="text-lg font-extrabold [font-stretch:125%]">{title}</h2>
               <button type="button" onClick={onClose} className="rounded-lg px-2.5 py-1.5 text-sm text-graphite hover:bg-paper hover:text-ink">
                 Close
               </button>

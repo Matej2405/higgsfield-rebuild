@@ -1,6 +1,8 @@
 "use client";
 
-import { IMAGE_MODELS, quote } from "@/lib/catalog";
+import Image from "next/image";
+import { IMAGE_MODELS, quote, TIER_COPY } from "@/lib/catalog";
+import { FEATURED } from "@/lib/featured";
 import { presetById } from "@/lib/presets";
 import type { Take } from "@/lib/take";
 import { formatSeconds, plural } from "./composer";
@@ -11,10 +13,12 @@ type Props = {
   takes: Take[] | null;
   loadError: string | null;
   now: number;
-  onOpen: (take: Take) => void;
+  onOpen: (take: Take, title: string) => void;
   onAnimate: (take: Take) => void;
   onRemix: (take: Take) => void;
 };
+
+type CardActions = Pick<Props, "onOpen" | "onAnimate" | "onRemix">;
 
 export function Takes({ takes, loadError, now, onOpen, onAnimate, onRemix }: Props) {
   return (
@@ -39,14 +43,14 @@ export function Takes({ takes, loadError, now, onOpen, onAnimate, onRemix }: Pro
           <p className="text-lg font-semibold">Your takes land here.</p>
           <p className="mx-auto mt-1 max-w-sm text-graphite">
             Pick a look, describe the picture and generate. A Draft image costs {plural(firstTake.credits, "credit")} and is ready in about{" "}
-            {formatSeconds(IMAGE_MODELS.draft.estimateSeconds)}.
+            {formatSeconds(IMAGE_MODELS.draft.estimateSeconds)}. Or remix one of the takes below.
           </p>
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
           {takes.map((take) => (
             <li key={take.id}>
-              <TakeCard take={take} now={now} onOpen={onOpen} onAnimate={onAnimate} onRemix={onRemix} />
+              <TakeCard take={take} title={`Take ${take.take}`} now={now} onOpen={onOpen} onAnimate={onAnimate} onRemix={onRemix} />
             </li>
           ))}
         </ul>
@@ -55,14 +59,35 @@ export function Takes({ takes, loadError, now, onOpen, onAnimate, onRemix }: Pro
   );
 }
 
-function TakeCard({ take, now, onOpen, onAnimate, onRemix }: { take: Take; now: number; onOpen: Props["onOpen"]; onAnimate: Props["onAnimate"]; onRemix: Props["onRemix"] }) {
+export function Featured({ onOpen, onAnimate, onRemix }: CardActions) {
+  return (
+    <section aria-labelledby="featured-heading" className="mt-10">
+      <h2 id="featured-heading" className="text-xl font-extrabold [font-stretch:125%]">
+        Made with Take One
+      </h2>
+      <p className="mb-3 mt-0.5 max-w-xl text-sm text-graphite">
+        Real takes from this app, each with its exact prompt and price. Remix one to start from its settings.
+      </p>
+      {/* Columns rather than a grid: one tall take would leave a gap across its whole row. */}
+      <ul className="columns-1 gap-3 sm:columns-2 2xl:columns-3">
+        {FEATURED.map((take) => (
+          <li key={take.id} className="mb-3 break-inside-avoid">
+            <TakeCard take={take} title={`${TIER_COPY[take.tier].label}, ${plural(take.credits, "credit")}`} now={0} onOpen={onOpen} onAnimate={onAnimate} onRemix={onRemix} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function TakeCard({ take, title, now, onOpen, onAnimate, onRemix }: CardActions & { take: Take; title: string; now: number }) {
   const preset = presetById(take.presetId);
   const done = take.status === "succeeded" && take.output;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-line bg-panel">
       <header className="flex items-center justify-between gap-3 border-b border-line px-3 py-2 text-sm">
-        <span className="font-bold tabular-nums">Take {take.take}</span>
+        <span className="font-bold tabular-nums">{title}</span>
         <span className="truncate text-graphite">
           {take.kind === "video" ? `${take.duration} s video` : "Image"}
           {preset ? `, ${preset.name}` : ""}
@@ -71,7 +96,7 @@ function TakeCard({ take, now, onOpen, onAnimate, onRemix }: { take: Take; now: 
 
       <div className="relative bg-ink/5" style={{ aspectRatio: take.aspect.replace(":", " / ") }}>
         {done ? (
-          <button type="button" onClick={() => onOpen(take)} className="block h-full w-full" aria-label={`Open take ${take.take}`}>
+          <button type="button" onClick={() => onOpen(take, title)} className="block h-full w-full" aria-label={`Open ${title}`}>
             {take.kind === "video" ? (
               <video
                 src={take.output!.url}
@@ -84,8 +109,7 @@ function TakeCard({ take, now, onOpen, onAnimate, onRemix }: { take: Take; now: 
                 onMouseLeave={(event) => event.currentTarget.pause()}
               />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={take.output!.url} alt={take.prompt} className="h-full w-full object-cover" />
+              <Image src={take.output!.url} alt={take.prompt} fill sizes="(min-width: 1536px) 30vw, (min-width: 640px) 45vw, 100vw" className="object-cover" />
             )}
           </button>
         ) : take.status === "failed" ? (

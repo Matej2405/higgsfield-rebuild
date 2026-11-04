@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CreditsState } from "@/lib/server/credits";
 import type { Take } from "@/lib/take";
 import { Composer, normalize, plural, type Draft } from "./composer";
-import { Takes } from "./takes";
+import { Featured, Takes } from "./takes";
 import { Viewer } from "./viewer";
 
 type StudioState = { takes: Take[]; credits: CreditsState; estimates: Record<string, number> } | { error: string };
@@ -35,7 +35,7 @@ export function Studio() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [viewing, setViewing] = useState<Take | null>(null);
+  const [viewing, setViewing] = useState<{ take: Take; title: string } | null>(null);
   // 0 until data arrives: reading the clock during render would freeze it into the prerendered shell.
   const [now, setNow] = useState(0);
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -108,6 +108,10 @@ export function Studio() {
     revealBelowFold(takesRef.current);
   }
 
+  function open(take: Take, title: string) {
+    setViewing({ take, title });
+  }
+
   function focusComposer() {
     composerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     promptRef.current?.focus({ preventScroll: true });
@@ -172,11 +176,12 @@ export function Studio() {
           />
         </div>
         <div ref={takesRef} className="scroll-mt-20">
-          <Takes takes={takes} loadError={loadError} now={now} onOpen={setViewing} onAnimate={animate} onRemix={remix} />
+          <Takes takes={takes} loadError={loadError} now={now} onOpen={open} onAnimate={animate} onRemix={remix} />
+          <Featured onOpen={open} onAnimate={animate} onRemix={remix} />
         </div>
       </main>
 
-      <Viewer take={viewing} onClose={() => setViewing(null)} onAnimate={animate} onRemix={remix} />
+      <Viewer take={viewing?.take ?? null} title={viewing?.title ?? ""} onClose={() => setViewing(null)} onAnimate={animate} onRemix={remix} />
     </>
   );
 }
