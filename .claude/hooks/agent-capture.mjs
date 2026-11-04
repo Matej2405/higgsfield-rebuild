@@ -11,9 +11,9 @@
 // Claude Code injects stdout into the model's context. Failures go to stderr with
 // exit 1, which Claude Code reports as a non-blocking hook error.
 //
-// If the hooks are installed partway through a session, the first captured event of
-// that session imports the earlier exchanges from the session transcript, and the log
-// header says how many entries were imported that way.
+// The first PROMPT of a new session can log `model: unknown`: in Claude Code 2.1.30x
+// SessionStart arrives without `model` and the transcript doesn't exist yet when the
+// first UserPromptSubmit fires. Entries are never rewritten to fill it in later.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -42,26 +42,24 @@ function main() {
       saveModelHint(input.to_model);
       break;
     case "UserPromptSubmit":
-      capture("prompt", { type: "PROMPT", timestamp: now(), model: currentModel(), text: input.prompt });
+      capture({ type: "PROMPT", timestamp: now(), model: currentModel(), text: input.prompt });
       break;
     case "Stop":
-      capture("stop", { type: "RESPONSE", timestamp: now(), model: currentModel(), text: input.last_assistant_message ?? transcriptResponse() });
+      capture({ type: "RESPONSE", timestamp: now(), model: currentModel(), text: input.last_assistant_message ?? "" });
       break;
   }
 }
 
-function capture(mode, entry) {
+function capture(entry) {
   const dir = path.join(process.env.CLAUDE_PROJECT_DIR || input.cwd, ".agent-logs");
   fs.mkdirSync(dir, { recursive: true });
   const existing = fs.readdirSync(dir).find((name) => name.endsWith(`_${input.session_id}.md`));
-  const imported = existing ? [] : importFromTranscript(mode);
-  const entries = [...imported, entry];
-  const file = path.join(dir, existing ?? `${fileStamp(entries[0].timestamp)}_${input.session_id}.md`);
-  const text = existing ? fs.readFileSync(file, "utf8") : newLog(entries[0].timestamp, imported.length);
-  writeAtomic(file, appendEntries(text, entries));
+  const file = path.join(dir, existing ?? `${fileStamp(entry.timestamp)}_${input.session_id}.md`);
+  const text = existing ? fs.readFileSync(file, "utf8") : newLog(entry.timestamp);
+  writeAtomic(file, appendEntry(text, entry));
 }
 
-function newLog(timestamp, importedCount) {
+function newLog(timestamp) {
   const meta = {
     session_id: input.session_id,
     date: timestamp.slice(0, 10),
@@ -73,13 +71,10 @@ function newLog(timestamp, importedCount) {
     first_prompt_time: "",
     last_prompt_time: "",
   };
-  const note = importedCount
-    ? `\n> The first ${importedCount} entries were imported from the Claude Code session transcript because they predate the capture hooks. Every entry after them was captured live.\n`
-    : "";
-  return `${frontmatter(meta)}\n# Session Log - ${meta.date}\n\nSession: \`${shortId()}\` | Project: \`${PROJECT}\` | Author: \`${AUTHOR}\`\n${note}\n---\n\n`;
+  return `${frontmatter(meta)}\n# Session Log - ${meta.date}\n\nSession: \`${shortId()}\` | Project: \`${PROJECT}\` | Author: \`${AUTHOR}\`\n\n---\n\n`;
 }
 
-function appendEntries(text, entries) {
+function appendEntry(text, entry) {
   const match = text.match(/^---\n([\s\S]*?)\n---\n/);
   const meta = Object.fromEntries(
     match[1].split("\n").map((line) => {
@@ -89,99 +84,22 @@ function appendEntries(text, entries) {
   );
   const models = meta.model.split(", ").filter((m) => m && m !== "unknown");
   let num = Number(meta.total_exchanges) || 0;
-  let body = text.slice(match[0].length);
 
-  for (const e of entries) {
-    if (e.type === "PROMPT") {
-      num += 1;
-      meta.first_prompt_time ||= e.timestamp;
-      meta.last_prompt_time = e.timestamp;
-    }
-    if (e.model !== "unknown" && !models.includes(e.model)) models.push(e.model);
-    body += `[LOG_ENTRY type=${e.type} num=${num} session=${shortId()}]\ntimestamp: ${e.timestamp}\nmodel: ${e.model}\n\n${e.text}\n\n\n`;
+  if (entry.type === "PROMPT") {
+    num += 1;
+    meta.first_prompt_time ||= entry.timestamp;
+    meta.last_prompt_time = entry.timestamp;
   }
+  if (entry.model !== "unknown" && !models.includes(entry.model)) models.push(entry.model);
 
   meta.total_exchanges = String(num);
   meta.model = models.join(", ") || "unknown";
-  return frontmatter(meta) + body;
+  const body = `[LOG_ENTRY type=${entry.type} num=${num} session=${shortId()}]\ntimestamp: ${entry.timestamp}\nmodel: ${entry.model}\n\n${entry.text}\n\n\n`;
+  return frontmatter(meta) + text.slice(match[0].length) + body;
 }
 
 function frontmatter(meta) {
   return `---\n${FIELDS.map((key) => `${key}: ${meta[key] ?? ""}`).join("\n")}\n---\n`;
-}
-
-// --- Transcript import (only when a session's log file doesn't exist yet) ---
-
-// Exchanges already in the transcript, minus whatever the live hook is about to write:
-// on a prompt, the current prompt; on a stop, the current turn's response.
-function importFromTranscript(mode) {
-  const exchanges = readExchanges();
-  const last = exchanges.at(-1);
-  const current = input.prompt_id
-    ? exchanges.find((ex) => ex.promptId === input.prompt_id)
-    : mode === "stop" || last?.prompt === input.prompt
-      ? last
-      : undefined;
-
-  const entries = [];
-  for (const ex of exchanges) {
-    if (ex === current && mode === "prompt") continue;
-    entries.push({ type: "PROMPT", timestamp: ex.timestamp, model: ex.model, text: ex.prompt });
-    if (ex.response && ex !== current) entries.push(ex.response);
-  }
-  return entries;
-}
-
-// Pairs each prompt the user typed with the text of the turn's final assistant message
-// (the one that didn't stop to call a tool). Interrupted turns have no final message,
-// matching the live Stop hook, which doesn't fire on interrupt.
-function readExchanges() {
-  const exchanges = [];
-  for (const entry of readTranscript()) {
-    if (entry.isSidechain || entry.isMeta) continue;
-    const content = entry.message?.content;
-
-    if (entry.type === "user" && entry.origin?.kind === "human" && !hasToolResult(content)) {
-      exchanges.push({ promptId: entry.promptId, timestamp: entry.timestamp, model: "unknown", prompt: renderPrompt(content), response: null });
-      continue;
-    }
-
-    const ex = exchanges.at(-1);
-    const msg = entry.message;
-    if (entry.type !== "assistant" || !ex || !msg?.model || msg.model === "<synthetic>") continue;
-    if (ex.model === "unknown") ex.model = msg.model;
-    if (!msg.stop_reason || msg.stop_reason === "tool_use") continue;
-
-    // One API message is written as several transcript lines (thinking, text, ...).
-    const text = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("\n\n");
-    if (ex.responseId !== msg.id) {
-      ex.responseId = msg.id;
-      ex.response = { type: "RESPONSE", timestamp: entry.timestamp, model: msg.model, text };
-    } else if (text) {
-      ex.response.text = ex.response.text ? `${ex.response.text}\n\n${text}` : text;
-      ex.response.timestamp = entry.timestamp;
-    }
-  }
-  return exchanges;
-}
-
-function hasToolResult(content) {
-  return Array.isArray(content) && content.some((b) => b.type === "tool_result");
-}
-
-function renderPrompt(content) {
-  if (typeof content === "string") return content;
-  let images = 0;
-  return content
-    .map((b) => (b.type === "text" ? b.text : b.type === "image" ? `[Image #${++images}]` : `[${b.type}]`))
-    .join("\n\n");
-}
-
-// Fallback for Claude Code versions whose Stop input lacks last_assistant_message.
-function transcriptResponse() {
-  const exchanges = readExchanges();
-  const ex = exchanges.find((e) => e.promptId === input.prompt_id) ?? exchanges.at(-1);
-  return ex?.response?.text ?? "";
 }
 
 // --- Model resolution ---
@@ -196,7 +114,9 @@ function currentModel() {
 }
 
 function lastAssistantEntry() {
-  const lines = readTranscriptLines();
+  const file = input.transcript_path?.replace(/^~(?=\/)/, os.homedir());
+  if (!file || !fs.existsSync(file)) return null;
+  const lines = fs.readFileSync(file, "utf8").split("\n");
   for (let i = lines.length - 1; i >= 0; i--) {
     if (!lines[i].includes('"type":"assistant"')) continue;
     const entry = parseLine(lines[i]);
@@ -223,16 +143,6 @@ function readModelHint() {
 }
 
 // --- Helpers ---
-
-function readTranscriptLines() {
-  const file = input.transcript_path?.replace(/^~(?=\/)/, os.homedir());
-  if (!file || !fs.existsSync(file)) return [];
-  return fs.readFileSync(file, "utf8").split("\n").filter(Boolean);
-}
-
-function readTranscript() {
-  return readTranscriptLines().map(parseLine).filter(Boolean);
-}
 
 function parseLine(line) {
   try {
