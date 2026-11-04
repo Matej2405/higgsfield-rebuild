@@ -34,6 +34,7 @@ export function Studio() {
   const [estimates, setEstimates] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Take | null>(null);
   // 0 until data arrives: reading the clock during render would freeze it into the prerendered shell.
   const [now, setNow] = useState(0);
@@ -45,10 +46,11 @@ export function Studio() {
   const apply = useCallback((state: StudioState) => {
     if ("error" in state) {
       setTakes((current) => current ?? []);
-      setError(state.error);
+      setLoadError(state.error);
       return;
     }
     setNow(Date.now());
+    setLoadError(null);
     setTakes(state.takes);
     setCredits(state.credits);
     setEstimates(state.estimates);
@@ -99,6 +101,7 @@ export function Studio() {
       return;
     }
     setNow(Date.now());
+    setLoadError(null);
     setTakes((current) => [data.take, ...(current ?? [])]);
     setCredits(data.credits);
   }
@@ -153,7 +156,7 @@ export function Studio() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[1500px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[400px_1fr] lg:items-start">
+      <main className="mx-auto grid max-w-[1500px] grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start">
         <div ref={composerRef} className="scroll-mt-20 lg:sticky lg:top-20">
           <Composer
             draft={draft}
@@ -166,7 +169,7 @@ export function Studio() {
             promptRef={promptRef}
           />
         </div>
-        <Takes takes={takes} now={now} onOpen={setViewing} onAnimate={animate} onRemix={remix} />
+        <Takes takes={takes} loadError={loadError} now={now} onOpen={setViewing} onAnimate={animate} onRemix={remix} />
       </main>
 
       <Viewer take={viewing} onClose={() => setViewing(null)} onAnimate={animate} onRemix={remix} />

@@ -6,13 +6,14 @@ import { formatSeconds } from "./composer";
 
 type Props = {
   takes: Take[] | null;
+  loadError: string | null;
   now: number;
   onOpen: (take: Take) => void;
   onAnimate: (take: Take) => void;
   onRemix: (take: Take) => void;
 };
 
-export function Takes({ takes, now, onOpen, onAnimate, onRemix }: Props) {
+export function Takes({ takes, loadError, now, onOpen, onAnimate, onRemix }: Props) {
   return (
     <section aria-labelledby="takes-heading">
       <div className="mb-3 flex items-baseline justify-between">
@@ -21,6 +22,12 @@ export function Takes({ takes, now, onOpen, onAnimate, onRemix }: Props) {
         </h2>
         {takes && takes.length > 0 && <p className="text-sm text-graphite tabular-nums">{takes.length} so far</p>}
       </div>
+
+      {loadError && (
+        <p role="alert" className="mb-3 rounded-lg bg-tally-wash px-3 py-2 text-sm text-tally-deep">
+          {loadError}
+        </p>
+      )}
 
       {takes === null ? (
         <p className="rounded-2xl border border-dashed border-line px-6 py-16 text-center text-graphite">Loading your takes…</p>

@@ -56,7 +56,7 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
 
   return (
     <form
-      className="flex flex-col rounded-2xl border border-line bg-panel"
+      className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-panel lg:max-h-[calc(100dvh-6.5rem)]"
       onSubmit={(event) => {
         event.preventDefault();
         if (hasInput && canAfford && !submitting) onSubmit();
@@ -79,7 +79,9 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
         ))}
       </div>
 
-      <fieldset className="border-b border-line p-4">
+      {/* The settings scroll on their own so the price and Generate stay in view. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+      <fieldset className="min-w-0 border-b border-line p-4">
         <legend className="sr-only">{draft.kind === "video" ? "Camera move" : "Look"}</legend>
         <p className="mb-2.5 text-sm text-graphite" aria-hidden="true">
           {draft.kind === "video" ? "Camera move" : "Look"}
@@ -119,38 +121,36 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
         {draft.kind === "video" && <StartImage url={draft.startImageUrl} onChange={(startImageUrl) => set({ startImageUrl, parentId: null })} />}
       </div>
 
-      <fieldset className="border-b border-line p-4">
+      <fieldset className="min-w-0 border-b border-line p-4">
         <legend className="sr-only">Quality</legend>
         <p className="mb-2.5 text-sm text-graphite" aria-hidden="true">
           Quality
         </p>
-        <div className="flex flex-col gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {TIERS.map((tier) => {
             const tierQuote = quote({ kind: draft.kind, tier, duration: draft.duration, hasStartImage: Boolean(draft.startImageUrl) });
             const checked = draft.tier === tier;
             return (
               <label
                 key={tier}
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
-                  checked ? "border-ink bg-white" : "border-transparent hover:bg-paper"
+                className={`cursor-pointer rounded-xl border px-2.5 py-2 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink ${
+                  checked ? "border-ink bg-white" : "border-line/70 hover:border-graphite/50"
                 }`}
               >
-                <input type="radio" name="tier" className="mt-1 accent-[var(--color-ink)]" checked={checked} onChange={() => set({ tier })} />
-                <span className="flex-1">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="text-[15px] font-semibold">{TIER_COPY[tier].label}</span>
-                    <span className="text-sm tabular-nums text-graphite">{plural(tierQuote.credits, "credit")}</span>
-                  </span>
-                  <span className="block text-[13px] leading-snug text-graphite">{TIER_COPY[tier].hint[draft.kind]}</span>
-                </span>
+                <input type="radio" name="tier" className="sr-only" checked={checked} onChange={() => set({ tier })} />
+                <span className="block text-[15px] font-semibold">{TIER_COPY[tier].label}</span>
+                <span className="block text-[13px] tabular-nums text-graphite">{plural(tierQuote.credits, "credit")}</span>
               </label>
             );
           })}
         </div>
+        <p className="mt-2 text-[13px] leading-snug text-graphite">
+          {TIER_COPY[draft.tier].hint[draft.kind]} Made with {q.modelName}.
+        </p>
       </fieldset>
 
-      <div className="flex flex-wrap gap-x-6 gap-y-3 border-b border-line p-4">
-        <fieldset>
+      <div className="flex flex-wrap gap-x-6 gap-y-3 p-4">
+        <fieldset className="min-w-0">
           <legend className="mb-2 text-sm text-graphite">Shape</legend>
           <div className="flex gap-1.5">
             {aspectsFor(draft.kind, draft.tier).map((aspect) => (
@@ -162,7 +162,7 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
           </div>
         </fieldset>
         {draft.kind === "video" && (
-          <fieldset>
+          <fieldset className="min-w-0">
             <legend className="mb-2 text-sm text-graphite">Length</legend>
             <div className="flex gap-1.5">
               {durationsFor(draft.tier).map((duration) => (
@@ -175,17 +175,15 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
         )}
       </div>
 
-      <div className="p-4">
-        <dl className="mb-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-graphite">Price</dt>
-          <dd className="text-right font-semibold tabular-nums">
-            {plural(q.credits, "credit")} <span className="font-normal text-graphite">({usd(q.costUsd)})</span>
-          </dd>
-          <dt className="text-graphite">Ready in</dt>
-          <dd className="text-right tabular-nums">about {formatSeconds(seconds)}</dd>
-          <dt className="text-graphite">Model</dt>
-          <dd className="text-right">{q.modelName}</dd>
-        </dl>
+      </div>
+
+      <div className="border-t border-line p-4">
+        <p className="mb-3 flex items-baseline justify-between gap-3 text-sm tabular-nums">
+          <span>
+            <span className="text-base font-bold">{plural(q.credits, "credit")}</span> <span className="text-graphite">({usd(q.costUsd)})</span>
+          </span>
+          <span className="text-graphite">ready in about {formatSeconds(seconds)}</span>
+        </p>
         {error && (
           <p role="alert" className="mb-3 rounded-lg bg-tally-wash px-3 py-2 text-sm text-tally-deep">
             {error}
