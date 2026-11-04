@@ -11,7 +11,7 @@ Read it once out loud and keep your own words. The timings are targets, not a te
 
 ## 0:00 – Who and what (20 s)
 
-> I'm Matej. This is Take One, my rebuild of what Higgsfield does: you describe a shot, and you get an AI image or video. I didn't copy the interface. I kept the one idea that makes Higgsfield good and cut most of the rest.
+> I'm Matej. This is Take One, my rebuild of what Higgsfield does: you describe a shot, and you get an AI image or video. I built it with Claude Code as my coding agent. I didn't copy the interface. I kept the one idea that makes Higgsfield good and cut most of the rest.
 
 ## 0:20 – What I saw on Higgsfield (40 s)
 
@@ -65,7 +65,7 @@ Read it once out loud and keep your own words. The timings are targets, not a te
 
 *Screen: README, "Verified with real runs".*
 
-> I didn't trust status codes. I measured every file the models returned. That caught things that would have shipped:
+> Instead of trusting status codes, I had the agent measure every file the models returned. That caught things that would have shipped:
 > - Two image models silently returned the wrong shape, so they were replaced.
 > - Square Draft video failed in production. The take was refunded, which proved the refund path works, and the fix was one size.
 > - One preset said "FPV drone", and the model put a drone in the shot.
