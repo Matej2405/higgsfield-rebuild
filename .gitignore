@@ -1,9 +1,17 @@
-# dependencies / build output
-node_modules/
-.next/
-out/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js / build output
+/.next/
+/out/
+/build
 *.tsbuildinfo
 next-env.d.ts
+
+# testing
+/coverage
 
 # env + platform
 .env*
@@ -13,6 +21,9 @@ next-env.d.ts
 # local-only Claude Code permissions (the hooks in .claude/settings.json ARE committed)
 .claude/settings.local.json
 
+# misc
 .DS_Store
+*.pem
+npm-debug.log*
 
 # .agent-logs/ is intentionally NOT ignored: it ships with the repo.
