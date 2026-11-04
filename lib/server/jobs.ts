@@ -200,7 +200,8 @@ async function fail(id: string, error: unknown) {
 
 function describeError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  if (/budget|credit card|insufficient (funds|credits)|quota/i.test(message))
+  // Gateway billing refusals, e.g. "Video generation requires a minimum balance of $10".
+  if (/budget|balance|credit card|insufficient (funds|credits)|quota/i.test(message))
     return "Generation is paused because the project's spending limit has been reached.";
   if (/safety|policy|moderat|blocked|sensitive/i.test(message))
     return "The model declined this prompt under its content rules. Try describing it differently.";
