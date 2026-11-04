@@ -205,8 +205,10 @@ function describeError(error: unknown) {
     return "Generation is paused because the project's spending limit has been reached.";
   if (/safety|policy|moderat|blocked|sensitive/i.test(message))
     return "The model declined this prompt under its content rules. Try describing it differently.";
-  if (/timed out|timeout/i.test(message)) return "The model took too long to answer.";
-  return `The model returned an error: ${message.slice(0, 160)}`;
+  if (/image_url/i.test(message)) return "The model couldn't read the start image. Upload it again and retry.";
+  if (/timed out|timeout/i.test(message)) return "The model took too long to answer. Try again.";
+  // Raw provider errors (parameter names, request IDs) mean nothing to a visitor; fail() logs them.
+  return "The model couldn't finish this take. Try again, or change the settings.";
 }
 
 async function recordDuration(modelId: string, seconds: number) {

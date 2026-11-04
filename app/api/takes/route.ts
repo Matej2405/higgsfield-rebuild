@@ -20,7 +20,10 @@ const CreateTake = z.object({
 export async function GET() {
   const visitor = await visitorId();
   try {
-    const [takes, credits, estimates] = await Promise.all([listTakes(visitor), creditsFor(visitor), measuredEstimates()]);
+    const takes = await listTakes(visitor);
+    // Only after listTakes: refreshing a take can refund it or record a new timing,
+    // and this is the last response the browser polls for once nothing is rolling.
+    const [credits, estimates] = await Promise.all([creditsFor(visitor), measuredEstimates()]);
     return Response.json({ takes, credits, estimates });
   } catch (error) {
     console.error("listing takes failed", error);
