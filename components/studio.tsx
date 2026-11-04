@@ -40,6 +40,7 @@ export function Studio() {
   const [now, setNow] = useState(0);
   const promptRef = useRef<HTMLTextAreaElement>(null);
   const composerRef = useRef<HTMLDivElement>(null);
+  const takesRef = useRef<HTMLDivElement>(null);
 
   const active = takes?.some((t) => t.status === "queued" || t.status === "running") ?? false;
 
@@ -104,6 +105,7 @@ export function Studio() {
     setLoadError(null);
     setTakes((current) => [data.take, ...(current ?? [])]);
     setCredits(data.credits);
+    revealBelowFold(takesRef.current);
   }
 
   function focusComposer() {
@@ -169,12 +171,19 @@ export function Studio() {
             promptRef={promptRef}
           />
         </div>
-        <Takes takes={takes} loadError={loadError} now={now} onOpen={setViewing} onAnimate={animate} onRemix={remix} />
+        <div ref={takesRef} className="scroll-mt-20">
+          <Takes takes={takes} loadError={loadError} now={now} onOpen={setViewing} onAnimate={animate} onRemix={remix} />
+        </div>
       </main>
 
       <Viewer take={viewing} onClose={() => setViewing(null)} onAnimate={animate} onRemix={remix} />
     </>
   );
+}
+
+// On narrow screens the takes sit below the composer, out of sight after Generate.
+function revealBelowFold(element: HTMLElement | null) {
+  if (element && element.getBoundingClientRect().top > window.innerHeight) element.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function CreditsMeter({ credits }: { credits: CreditsState }) {
