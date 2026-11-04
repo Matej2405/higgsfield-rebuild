@@ -111,6 +111,15 @@ function TakeCard({ take, title, now, onOpen, onAnimate, onRemix }: CardActions 
             ) : (
               <Image src={take.output!.url} alt={take.prompt} fill sizes="(min-width: 1536px) 30vw, (min-width: 640px) 45vw, 100vw" className="object-cover" />
             )}
+            {/* An animated still opens on that still, so without this a video looks like its source image. */}
+            {take.kind === "video" && (
+              <span className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-ink/75 px-1.5 py-0.5 text-[12px] font-semibold tabular-nums text-white">
+                <svg viewBox="0 0 10 10" className="h-2.5 w-2.5" aria-hidden="true">
+                  <path d="M2 1 L9 5 L2 9 z" fill="currentColor" />
+                </svg>
+                {take.duration} s
+              </span>
+            )}
           </button>
         ) : take.status === "failed" ? (
           <div className="flex h-full flex-col items-center justify-center gap-1 p-4 text-center">

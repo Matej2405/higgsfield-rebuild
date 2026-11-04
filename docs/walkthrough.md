@@ -42,7 +42,7 @@ Read it once out loud and keep your own words. The timings are targets, not a te
 
 > One click turns the still into the first frame of a video, with a camera move already picked.
 
-*Click **Generate video** (Draft, 5 credits, about 30 s). While it renders:*
+*Click **Generate video** (Draft, 5 credits, 30–45 s). While it renders:*
 
 > Video is asynchronous. I can keep working, start more takes, and each one shows its progress against the estimate. If a take fails, the credits come back automatically. Switching to Cinematic shows sixty credits for four seconds with sound, so the expensive option is never a surprise.
 
