@@ -78,9 +78,15 @@ Higgsfield's best idea is **presets**. "Pick a look, add your image, get a video
 
 | Intent | Image | Video |
 | :- | :- | :- |
-| Draft (fast, cheapest) | FLUX 3 Klein (≈1¢) | Seedance 1.0 Pro Fast, 480p (≈5¢ per 5 s) |
-| Standard | Seedream 5.0 Pro (≈4¢) | Kling 2.5 Turbo (≈21¢ per 5 s) |
-| Cinematic | FLUX 3 (≈5¢) | Veo 3.1 Fast with audio (≈60¢ per 4 s) |
+| Draft (fast, cheapest) | Grok Imagine (2¢, ~7 s) | Seedance 1.0 Pro Fast, 480p (≈5¢ per 5 s) |
+| Standard | Seedream 5.0 Pro, no watermark (≈4¢, ~45 s) | Kling 2.5 Turbo (≈21¢ per 5 s) |
+| Cinematic | FLUX 1.1 Pro Ultra (6¢, ~8 s) | Veo 3.1 Fast with audio (≈60¢ per 4 s) |
+
+*Revised after the first live tests (2026-11-04):*
+- **FLUX 3 dropped.** The image lineup was first FLUX 3 Klein, Seedream 5.0 Pro and FLUX 3. The gateway's free tier refuses both FLUX 3 models, and the replacements work with or without paid credit.
+- **Shape checked by pixels.** Every candidate was checked by measuring the pixel size it returned. FLUX 1.1 Pro and FLUX 2 Klein were rejected because they return 4:3 or square images when asked for 16:9, and give no warning.
+- **Seedream takes a size.** It ignores `aspectRatio`, so it is sent an exact `size` for each shape.
+- **Video needs paid credit.** The gateway requires a paid balance of at least $10 before it accepts a video job.
 
 **Presets:** a preset is a prompt template plus default settings plus a preview. The first set:
 - **video:** camera moves such as dolly in, orbit, crane up, FPV fly-through, handheld, product spin and timelapse

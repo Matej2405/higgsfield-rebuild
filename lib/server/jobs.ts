@@ -6,7 +6,7 @@ import {
   type JSONValue,
 } from "ai";
 import { after } from "next/server";
-import { aspectsFor, durationsFor, quote, VIDEO_MODELS } from "../catalog";
+import { aspectsFor, durationsFor, IMAGE_MODELS, quote, VIDEO_MODELS } from "../catalog";
 import { buildPrompt, presetById } from "../presets";
 import type { CreateTakeInput, Take } from "../take";
 import { creditDay, refundCredits, reserveCredits } from "./credits";
@@ -104,12 +104,14 @@ export async function getTake(visitorId: string, id: string): Promise<Take | nul
 }
 
 async function runImage(job: Job) {
+  const model = IMAGE_MODELS[job.tier];
   await save({ ...job, status: "running", startedAt: Date.now() });
   try {
     const { image } = await generateImage({
       model: job.modelId,
       prompt: job.finalPrompt,
-      aspectRatio: job.aspect,
+      ...(model.sizes ? { size: model.sizes[job.aspect] } : { aspectRatio: job.aspect }),
+      providerOptions: model.providerOptions,
       abortSignal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
     });
     const ext = image.mediaType.split("/")[1]?.replace("jpeg", "jpg") ?? "png";

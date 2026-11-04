@@ -9,11 +9,16 @@ export type Aspect = "16:9" | "9:16" | "1:1";
 
 export const TIERS: Tier[] = ["draft", "standard", "cinematic"];
 
+type ProviderOptions = Record<string, Record<string, string | boolean>>;
+
 type ImageModel = {
   modelId: string;
   name: string;
   costUsd: number;
   aspects: Aspect[];
+  // For models that ignore aspectRatio and need the exact pixel size instead.
+  sizes?: Record<Aspect, `${number}x${number}`>;
+  providerOptions?: ProviderOptions;
   estimateSeconds: number;
 };
 
@@ -27,7 +32,7 @@ type VideoModel = {
   aspects: Aspect[];
   resolutions: Record<Aspect, `${number}x${number}`>;
   generateAudio: boolean;
-  providerOptions?: Record<string, Record<string, string>>;
+  providerOptions?: ProviderOptions;
   estimateSeconds: number;
 };
 
@@ -46,10 +51,21 @@ export const TIER_COPY: Record<Tier, { label: string; hint: Record<Kind, string>
   },
 };
 
+// Every image model here was checked to return the shape that was asked for. FLUX 1.1
+// Pro and FLUX 2 Klein were dropped because they return 4:3 or square without a warning.
 export const IMAGE_MODELS: Record<Tier, ImageModel> = {
-  draft: { modelId: "bfl/flux-3-image-klein", name: "FLUX 3 Klein", costUsd: 0.009, aspects: ["16:9", "9:16", "1:1"], estimateSeconds: 8 },
-  standard: { modelId: "bytedance/seedream-5.0-pro", name: "Seedream 5.0 Pro", costUsd: 0.035, aspects: ["16:9", "9:16", "1:1"], estimateSeconds: 20 },
-  cinematic: { modelId: "bfl/flux-3-image", name: "FLUX 3", costUsd: 0.048, aspects: ["16:9", "9:16", "1:1"], estimateSeconds: 15 },
+  draft: { modelId: "spacexai/grok-imagine-image", name: "Grok Imagine", costUsd: 0.02, aspects: ["16:9", "9:16", "1:1"], estimateSeconds: 8 },
+  standard: {
+    modelId: "bytedance/seedream-5.0-pro",
+    name: "Seedream 5.0 Pro",
+    costUsd: 0.035,
+    aspects: ["16:9", "9:16", "1:1"],
+    sizes: { "16:9": "2560x1440", "9:16": "1440x2560", "1:1": "2048x2048" },
+    // Seedream stamps "AI generated" into the corner by default.
+    providerOptions: { bytedance: { watermark: false } },
+    estimateSeconds: 40,
+  },
+  cinematic: { modelId: "bfl/flux-pro-1.1-ultra", name: "FLUX 1.1 Pro Ultra", costUsd: 0.06, aspects: ["16:9", "9:16", "1:1"], estimateSeconds: 12 },
 };
 
 export const VIDEO_MODELS: Record<Tier, VideoModel> = {
