@@ -1,0 +1,18 @@
+# dependencies / build output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# env + platform
+.env*
+!.env.example
+.vercel
+
+# local-only Claude Code permissions (the hooks in .claude/settings.json ARE committed)
+.claude/settings.local.json
+
+.DS_Store
+
+# .agent-logs/ is intentionally NOT ignored: it ships with the repo.
