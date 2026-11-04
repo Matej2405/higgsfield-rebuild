@@ -76,7 +76,8 @@ export const VIDEO_MODELS: Record<Tier, VideoModel> = {
     costPerSecondUsd: 0.0097, // 480p
     durations: [5, 10],
     aspects: ["16:9", "9:16", "1:1"],
-    resolutions: { "16:9": "864x480", "9:16": "480x864", "1:1": "480x480" },
+    // Seedance's 480p sizes; a square 480x480 is refused.
+    resolutions: { "16:9": "864x480", "9:16": "480x864", "1:1": "640x640" },
     generateAudio: false,
     estimateSeconds: 45,
   },
@@ -87,6 +88,7 @@ export const VIDEO_MODELS: Record<Tier, VideoModel> = {
     costPerSecondUsd: 0.042, // std mode
     durations: [5, 10],
     aspects: ["16:9", "9:16", "1:1"],
+    // Kling accepts a 720x720 square request and returns 960x960.
     resolutions: { "16:9": "1280x720", "9:16": "720x1280", "1:1": "720x720" },
     generateAudio: false,
     providerOptions: { klingai: { mode: "std" } },
