@@ -2,9 +2,9 @@
 
 **Sources:**
 - higgsfield.ai, `/apps` and `/pricing`, fetched 2026-11-04.
-- A hands-on walkthrough by Matej on 2026-11-04. Screenshots are in [`screenshots/`](screenshots/) and cited below as (01)–(09).
+- A hands-on walkthrough by Matej on 2026-11-04. Screenshots are in [`screenshots/`](screenshots/) and cited below as (01)–(12).
 
-**Status:** Sign-up, both generators and pricing have been seen hands-on. Still open: the waiting state, the result detail view, history, community and one app (see §4).
+**Status:** Sign-up, both generators, result actions, profile, community and pricing have been seen hands-on. Still open: the waiting state and history (see §4).
 
 ## 1. What it is
 
@@ -71,6 +71,18 @@ The video page teaches the loop itself: "Make videos in one click": **Add image 
 - Video: a form on the left (preset card, references, prompt with `@ Elements`, audio toggle, model, duration, aspect, quality, bitrate), with results under a "History" tab (07).
 - Genjutsu: a third variant (motion transfer / objects swap, style, reference video, characters, prompt toggle) (08).
 
+**Results lead to the next step, but the controls are unlabeled icons** (10)
+- Hovering a generated image shows favorite, download, copy and "…" in one corner.
+- A toolbar along the bottom edge has more icons that appear to send the image onward, for example into video or upscale.
+- Turning an image into the input of the next generation (image → video) is the natural loop, and here it's one click away. But the controls have no labels, so you find them by hovering over each icon.
+
+**A social network sits on top of the generator** (11, 12)
+- Every user has a public profile with All works, Projects, Shots, Blog, Rating and Achievements, plus "Publish" and "Create" buttons. The empty states push you to publish (11).
+- Community has seven tabs: Discovery, Projects, Shots, Creators, Contests, Blogs, Originals.
+- It features creators with points badges, and advertises Grants (12).
+- The upsell banner and the "Credits are running low" toast follow you there too.
+- This is a creator-economy layer, separate from the job of making an image or video.
+
 ## 4. Hands-on walkthrough checklist (Matej)
 
 - [x] Sign-up/onboarding (02, 03)
@@ -78,9 +90,9 @@ The video page teaches the loop itself: "Make videos in one click": **Add image 
 - [x] Video generator: controls, presets, cost (06, 07, 08)
 - [x] Pricing (09)
 - [ ] What waiting looks like while a video generates (the 1 free Genjutsu generation could show this)
-- [ ] Clicking a generated result: what you can do with it (download, upscale, animate, reuse prompt?)
+- [x] Actions on a generated result (10)
 - [ ] History/library: the folder icon in the nav, or the "History" tab
-- [ ] Explore/community: a project page
+- [x] Profile and community (11, 12)
 - [ ] Anything that confused or annoyed you, with the screenshot number
 
 ## 5. Scope thinking (draft, to be decided once §4 is complete)
@@ -91,9 +103,14 @@ The judging criteria are speed, product judgement (what's first, what's left out
 - **One composer** for both image and video, with presets first. Model choice comes second and is described by intent (fast / best quality / cheapest), not by brand name.
 - **An honest price before generating:** credits *and* money, plus what drives the cost.
 - **Async generation done well:** visible progress, keep working meanwhile, results appear in a history.
+- **Results that chain, with labels:** "Animate this", "Use as reference", "Upscale" and "Reuse prompt" spelled out on every result, not hidden behind icons.
 - **A visitor can try it without signing up,** with a few demo credits. The brief requires the live link to work signed-out.
 - **A small curated set of templates** on the same pipeline.
 
-**Likely out:** side products (Mangaka, Playable, Supercomputer, MCP, plugins, contests, Academy, team/enterprise), real payments and most of the 46 apps.
+**Likely out:**
+- side products (Mangaka, Playable, Supercomputer, MCP, plugins, contests, Academy, team/enterprise)
+- the social layer: profiles, followers, blogs, ratings and achievements. At most a light public gallery with "remix this prompt".
+- real payments
+- most of the 46 apps
 
 **Open decision:** a real generation backend, which needs an API provider and a spend cap.
