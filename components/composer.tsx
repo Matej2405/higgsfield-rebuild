@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { aspectsFor, durationsFor, quote, TIER_COPY, TIERS, type Aspect, type Kind, type Tier } from "@/lib/catalog";
 import { PRESETS, presetById } from "@/lib/presets";
@@ -86,19 +87,25 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
         <p className="mb-2.5 text-sm text-graphite" aria-hidden="true">
           {draft.kind === "video" ? "Camera move" : "Look"}
         </p>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {PRESETS.filter((p) => p.kind === draft.kind).map((p) => (
-            <PresetTile key={p.id} checked={draft.presetId === p.id} onSelect={() => set({ presetId: p.id, aspect: p.aspect ?? draft.aspect })}>
-              {p.move && <MoveDiagram move={p.move} className="mb-1 h-7 w-11" />}
-              <span className="block text-[15px] font-semibold leading-tight">{p.name}</span>
-              <span className="block text-[13px] leading-snug text-graphite">{p.summary}</span>
+            <PresetTile key={p.id} name={p.name} checked={draft.presetId === p.id} onSelect={() => set({ presetId: p.id, aspect: p.aspect ?? draft.aspect })}>
+              {/* A frame from a real take made with this preset (scripts/generate-previews.mjs). */}
+              <Image src={`/presets/${p.id}.jpg`} alt="" fill sizes="120px" className="object-cover" />
+              {p.move && (
+                <span className="absolute bottom-1 left-1 rounded-md bg-panel/90 px-0.5">
+                  <MoveDiagram move={p.move} className="h-6 w-10" />
+                </span>
+              )}
             </PresetTile>
           ))}
-          <PresetTile checked={draft.presetId === null} onSelect={() => set({ presetId: null })}>
-            <span className="block text-[15px] font-semibold leading-tight">No preset</span>
-            <span className="block text-[13px] leading-snug text-graphite">Your words only</span>
+          <PresetTile name="No preset" checked={draft.presetId === null} onSelect={() => set({ presetId: null })}>
+            <span className="flex h-full items-center justify-center text-[34px] font-black text-graphite/50" aria-hidden="true">
+              &ldquo;&rdquo;
+            </span>
           </PresetTile>
         </div>
+        <p className="mt-2 text-[13px] leading-snug text-graphite">{preset ? `${preset.summary}.` : "Only your own words are sent to the model."}</p>
       </fieldset>
 
       <div className="border-b border-line p-4">
@@ -210,15 +217,16 @@ export function Composer({ draft, onChange, onSubmit, submitting, error, credits
   );
 }
 
-function PresetTile({ checked, onSelect, children }: { checked: boolean; onSelect: () => void; children: React.ReactNode }) {
+function PresetTile({ name, checked, onSelect, children }: { name: string; checked: boolean; onSelect: () => void; children: React.ReactNode }) {
   return (
     <label
-      className={`relative cursor-pointer rounded-xl border px-3 py-2.5 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink ${
-        checked ? "border-ink bg-white" : "border-line/70 hover:border-graphite/50"
+      className={`cursor-pointer overflow-hidden rounded-xl border transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ink ${
+        checked ? "border-ink bg-white ring-1 ring-ink" : "border-line/70 hover:border-graphite/50"
       }`}
     >
       <input type="radio" name="preset" className="sr-only" checked={checked} onChange={onSelect} />
-      {children}
+      <span className="relative block aspect-[4/3] bg-paper">{children}</span>
+      <span className="block px-2 py-1.5 text-[13px] font-semibold leading-tight">{name}</span>
     </label>
   );
 }

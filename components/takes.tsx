@@ -1,8 +1,11 @@
 "use client";
 
+import { IMAGE_MODELS, quote } from "@/lib/catalog";
 import { presetById } from "@/lib/presets";
 import type { Take } from "@/lib/take";
-import { formatSeconds } from "./composer";
+import { formatSeconds, plural } from "./composer";
+
+const firstTake = quote({ kind: "image", tier: "draft" });
 
 type Props = {
   takes: Take[] | null;
@@ -35,7 +38,8 @@ export function Takes({ takes, loadError, now, onOpen, onAnimate, onRemix }: Pro
         <div className="rounded-2xl border border-dashed border-line px-6 py-16 text-center">
           <p className="text-lg font-semibold">Your takes land here.</p>
           <p className="mx-auto mt-1 max-w-sm text-graphite">
-            Pick a look, describe the picture and generate. A Draft image costs one credit and is ready in seconds.
+            Pick a look, describe the picture and generate. A Draft image costs {plural(firstTake.credits, "credit")} and is ready in about{" "}
+            {formatSeconds(IMAGE_MODELS.draft.estimateSeconds)}.
           </p>
         </div>
       ) : (

@@ -49,7 +49,8 @@ export const PRESETS: Preset[] = [
     kind: "video",
     name: "Fly-through",
     summary: "Fast FPV drone flight",
-    direction: "Camera: fast FPV drone flight through the scene with dynamic banking turns and a sense of speed.",
+    // Naming the drone puts one in the shot; describe what the camera does instead.
+    direction: "Camera: fast first-person flight through the scene, low and close to the surfaces, with banking turns and a strong sense of speed.",
     placeholder: "A canyon river with towering red rock walls",
     move: "fly-through",
   },
